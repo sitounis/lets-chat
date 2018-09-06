@@ -1,7 +1,8 @@
-settings.yml
+# settings.yml
 settings.js
 node_modules
 bower_components
+builtAssets
 npm-debug.log
 .DS_Store
 .idea

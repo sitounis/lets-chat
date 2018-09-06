@@ -52,7 +52,9 @@ module.exports = function() {
     app.post('/account/login', function(req) {
         req.io.route('account:login');
     });
-
+    app.post('/account/token', function(req) {
+        req.io.route('account:token_api');
+    });
     app.post('/account/register', function(req) {
         req.io.route('account:register');
     });
@@ -157,6 +159,49 @@ module.exports = function() {
                         });
                     }
                     res.json(user);
+                });
+            });
+        },
+        token_api: function(req, res) {
+            auth.authenticate(req, function(err, user, info) {
+                if (err) {
+                    return res.status(400).json({
+                        status: 'error',
+                        message: 'There were problems logging you in.',
+                        errors: err
+                    });
+                }
+
+                if (!user && info && info.locked) {
+                    return res.status(403).json({
+                        status: 'error',
+                        message: info.message || 'Account is locked.'
+                    });
+                }
+
+                if (!user) {
+                    return res.status(401).json({
+                        status: 'error',
+                        message: info && info.message ||
+                                 'Incorrect login credentials.'
+                    });
+                }
+
+                core.account.generateToken(user._id, function (err, token) {
+                    if (err) {
+                        return res.json({
+                            status: 'error',
+                            message: 'Unable to generate a token.',
+                            errors: err
+                        });
+                    }
+
+                    res.json({
+                        status: 'success',
+                        message: 'Token generated.',
+                        token: token,
+                        userid: user._id
+                    });
                 });
             });
         },
