@@ -38,3 +38,6 @@ auth:
   providers: [local]
   local:
     enableRegistration: true
+  # throttling:
+  #   enable: true
+  #   threshold: 3

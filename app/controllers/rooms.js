@@ -123,9 +123,9 @@ module.exports = function() {
             var options = {
                     userId: req.user._id,
                     users: req.param('users'),
-
-                    skip: req.param('skip'),
-                    take: req.param('take')
+                 
+                    skip:  parseInt(req.param('skip'), 10),
+                    take:  parseInt(req.param('take'), 10)
                 };
 
             core.rooms.list(options, function(err, rooms) {
