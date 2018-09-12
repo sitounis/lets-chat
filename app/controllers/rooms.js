@@ -1,5 +1,5 @@
 //
-// Rooms Controller
+// Rooms Controller allages
 //
 
 'use strict';
