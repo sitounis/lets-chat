@@ -149,7 +149,7 @@ RoomManager.prototype.archive = function (roomId, cb) {
 
 RoomManager.prototype.list = function (options, cb) {
     options = options || {};
-    
+
     options = helpers.sanitizeQuery(options, {
         defaults: {
             take: 500
@@ -172,7 +172,7 @@ RoomManager.prototype.list = function (options, cb) {
             { password: { $exists: true, $ne: '' } }
         ]
     });
-   
+
     if (options.skip) {
         find.skip(options.skip);
     }
@@ -208,7 +208,76 @@ RoomManager.prototype.list = function (options, cb) {
 
     }.bind(this));
 };
+RoomManager.prototype.mylist = function (options, cb) {
+    options = options || {};
 
+    options = helpers.sanitizeQuery(options, {
+        defaults: {
+            take: 500
+        },
+        maxTake: 5000
+    });
+
+    var roomsids = [];
+    if (options.rooms) {
+        for (var index = 0; index < options.rooms.length; index++) {
+            var element = options.rooms[index];
+            roomsids.push(mongoose.Types.ObjectId(element))
+        }
+    }
+
+    var Room = mongoose.model('Room');
+
+    var find = Room.find({
+        archived: { $ne: true },
+        $or: [
+            { private: { $exists: false } },
+            { private: false },
+
+            { owner: options.userId },
+
+            { participants: options.userId },
+
+            { password: { $exists: true, $ne: '' } }
+        ],
+        '_id': { $in: roomsids }
+    });
+
+    if (options.skip) {
+        find.skip(options.skip);
+    }
+
+    if (options.take) {
+        find.limit(options.take);
+    }
+
+    if (options.sort) {
+        var sort = options.sort.replace(',', ' ');
+        find.sort(sort);
+    } else {
+        find.sort('-lastActive');
+    }
+
+    find.populate('participants');
+
+    find.exec(function (err, rooms) {
+        if (err) {
+            return cb(err);
+        }
+
+        _.each(rooms, function (room) {
+            this.sanitizeRoom(options, room);
+        }.bind(this));
+
+        if (options.users && !options.sort) {
+            rooms = _.sortBy(rooms, ['userCount', 'lastActive'])
+                .reverse();
+        }
+
+        cb(null, rooms);
+
+    }.bind(this));
+};
 RoomManager.prototype.sanitizeRoom = function (options, room) {
     var authorized = options.userId && room.isAuthorized(options.userId);
 

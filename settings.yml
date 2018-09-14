@@ -8,7 +8,7 @@ env: production # development / production
 
 http:
   enable: true
-  host: 192.168.137.10 #'localhost' 192.168.137.1
+  host: 'localhost' #'localhost' 192.168.137.1
   port: 5000
 
 https:
